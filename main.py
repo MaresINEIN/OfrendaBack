@@ -1,9 +1,20 @@
 from fastapi import FastAPI , WebSocket, WebSocketDisconnect, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from dbconexion import sql_susto,dedicatorias
 
 app = FastAPI()
 
 websockets = []
+
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],  # Permite todos los métodos HTTP (GET, POST, etc.)
+    allow_headers=["*"],  # Permite todos los encabezados en las solicitudes
+)
 
 @app.get("/")
 async def raiz():
@@ -19,9 +30,10 @@ async def nueva_dedicatoria(dedicatoria:dedicatorias):
         raise HTTPException(status_code=404, detail="Ocurrio un error al ingresar dedicatoria")
     try:
         for usuario in websockets:
-            usuario.send_text('recargar')
-    except:
-        websockets.remove(websockets)
+            await usuario.send_text('recargar')
+    except Exception as e:
+        print(e)
+        websockets.remove(usuario)
     return {"message": "Dedicatoria registrada con exito", 'status': 'success'}
 
 @app.get("/Obtener_dedicatorias")
@@ -35,6 +47,7 @@ async def websocket_manager(websocket:WebSocket):
     websockets.append(websocket)
     try:
         while True:
-            pass
+            data = await websocket.receive_text() 
     except WebSocketDisconnect:
+        websockets.remove(websocket)
         print("se desconecto")

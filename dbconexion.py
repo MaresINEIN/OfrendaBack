@@ -13,8 +13,6 @@ class dedicatorias(BaseModel):
     img:str|bool=False
     mensaje:str|bool=False
 
-    verifica =validator('mensaje','img')(no_esta_vacio)
-
 class EspantanTan:
     def __init__(self,):
       self.conexion = mysql.connector.connect(
